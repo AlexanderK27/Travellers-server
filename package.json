@@ -1,0 +1,20 @@
+{
+	"name": "travellers-server",
+	"version": "1.0.0",
+	"description": "Express server for Travellers",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js",
+		"dev": "env-cmd -f ./config/dev.env nodemon index.js"
+	},
+	"author": "Oleksandr Kolomiichuk <o.kolomiichuk@outlook.com>",
+	"license": "ISC",
+	"dependencies": {
+		"express": "^4.17.1",
+		"pg": "^8.5.1"
+	},
+	"devDependencies": {
+		"env-cmd": "^10.1.0",
+		"nodemon": "^2.0.6"
+	}
+}
