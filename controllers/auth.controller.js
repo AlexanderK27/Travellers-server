@@ -17,6 +17,27 @@ async function checkUsername(req, res) {
 	}
 }
 
+async function login(req, res) {
+	let { email, password } = req.body;
+
+	// validation
+	try {
+		email = await Validate.Email(email);
+		password = await Validate.Password(password);
+	} catch (error) {
+		return res.status(400).json({ error: 'Invalid email or password' });
+	}
+
+	// logging in
+	try {
+		const user = await authService.login(email, password);
+		req.session.user = user;
+		res.status(200).json({ payload: { username: user.username } });
+	} catch (error) {
+		res.status(400).json({ error: 'Invalid email or password' });
+	}
+}
+
 async function signup(req, res) {
 	let { username, email, password } = req.body;
 
@@ -54,5 +75,6 @@ async function signup(req, res) {
 
 module.exports = {
 	checkUsername,
+	login,
 	signup
 };

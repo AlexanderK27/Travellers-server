@@ -33,8 +33,26 @@ async function create(username, email, password) {
 	}
 }
 
+async function findByEmail(email) {
+	try {
+		const response = await db.query(
+			`
+				SELECT user_id, username, user_password
+				FROM users 
+				WHERE user_email = $1
+			`,
+			[email]
+		);
+		return response.rows[0] || Promise.reject('user not found');
+	} catch (error) {
+		console.log('findUserByEmail', error.message);
+		Promise.reject('unknown error');
+	}
+}
+
 module.exports = {
 	checkEmail,
 	checkUsername,
-	create
+	create,
+	findByEmail
 };

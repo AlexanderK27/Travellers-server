@@ -9,6 +9,22 @@ async function checkUsername(username) {
 	}
 }
 
+async function login(email, password) {
+	try {
+		const { user_id, username, user_password } = await userModel.findByEmail(email);
+
+		const match = await bcrypt.compare(password, user_password);
+
+		if (match) {
+			return { user_id, username };
+		} else {
+			return Promise.reject('Invalid email or password');
+		}
+	} catch (error) {
+		return Promise.reject('User not found');
+	}
+}
+
 async function signup(username, email, password) {
 	try {
 		await userModel.checkUsername(username);
@@ -26,5 +42,6 @@ async function signup(username, email, password) {
 
 module.exports = {
 	checkUsername,
+	login,
 	signup
 };
