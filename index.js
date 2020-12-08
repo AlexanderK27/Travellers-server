@@ -1,8 +1,11 @@
 const express = require('express');
+const session = require('./middlewares/session.middleware');
+
 const app = express();
 const port = process.env.PORT;
 
 // middlewares
+app.use(session);
 app.use(express.json());
 
 // routes
