@@ -1,13 +1,16 @@
 const isEmail = require('validator/lib/isEmail');
 const normalizeEmail = require('validator/lib/normalizeEmail');
+const Validator = require('./Validator');
 
-class Validate {
-	constructor(isEmail, normalizeEmail) {
+class UserValidator extends Validator {
+	constructor(isEmail, normalizeEmail, options) {
+		super(options);
+
 		this.isEmail = isEmail;
 		this.normalizeEmail = normalizeEmail;
 	}
 
-	async Email(value, errorMessage = 'Invalid email') {
+	async email(value, errorMessage = 'Invalid email') {
 		if (!this.isString(value)) return Promise.reject(errorMessage);
 
 		value = value.trim();
@@ -17,14 +20,14 @@ class Validate {
 		return this.normalizeEmail(value);
 	}
 
-	async Password(value, errorMessage = 'Invalid password') {
+	async password(value, errorMessage = 'Invalid password') {
 		if (!this.isString(value) || value.length < 8 || value.length > 30) {
 			return Promise.reject(errorMessage);
 		}
 		return value;
 	}
 
-	async Username(value, errorMessage = 'Invalid username') {
+	async username(value, errorMessage = 'Invalid username') {
 		if (!this.isString(value)) return Promise.reject(errorMessage);
 
 		value = value.trim();
@@ -35,10 +38,6 @@ class Validate {
 
 		return value;
 	}
-
-	isString(value) {
-		return typeof value === 'string';
-	}
 }
 
-module.exports = new Validate(isEmail, normalizeEmail);
+module.exports = new UserValidator(isEmail, normalizeEmail);

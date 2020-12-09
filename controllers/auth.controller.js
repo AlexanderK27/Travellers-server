@@ -1,9 +1,9 @@
 const authService = require('../services/auth.service');
-const Validate = require('../utils/Validate');
+const UserValidator = require('../utils/Validator/UserValidator');
 
 async function checkUsername(req, res) {
 	try {
-		const username = await Validate.Username(req.params.username, 'validation');
+		const username = await UserValidator.username(req.params.username, 'validation');
 
 		await authService.checkUsername(username);
 
@@ -22,8 +22,8 @@ async function login(req, res) {
 
 	// validation
 	try {
-		email = await Validate.Email(email);
-		password = await Validate.Password(password);
+		email = await UserValidator.email(email);
+		password = await UserValidator.password(password);
 	} catch (error) {
 		return res.status(400).json({ error: 'Invalid email or password' });
 	}
@@ -43,9 +43,9 @@ async function signup(req, res) {
 
 	// validation
 	try {
-		username = await Validate.Username(username, 'username');
-		email = await Validate.Email(email);
-		password = await Validate.Password(password);
+		username = await UserValidator.username(username, 'username');
+		email = await UserValidator.email(email);
+		password = await UserValidator.password(password);
 	} catch (error) {
 		res.status(400);
 
