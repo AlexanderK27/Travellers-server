@@ -66,8 +66,28 @@ async function updateStatus(req, res) {
 	}
 }
 
+async function ratePost(req, res) {
+	const user_id = req.session.user.user_id;
+	const post_id = PostValidator.toZeroNaturalOrNull(req.body.post_id);
+	// user can either like post or dislike, by default let it be like
+	const isLike = !req.body.dislike;
+
+	if (!post_id) {
+		return res.status(404).json({ error: 'Post not found' });
+	}
+
+	try {
+		const likesAndDislikes = await postService.likeDislike(user_id, post_id, isLike);
+		res.status(200).json({ payload: likesAndDislikes });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
 module.exports = {
 	create,
 	deletePost,
+	ratePost,
 	updateStatus
 };

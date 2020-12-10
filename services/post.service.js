@@ -1,6 +1,6 @@
 const postModel = require('../models/post.model');
+const userModel = require('../models/user.model');
 
-/****************************/
 /***** PUBLIC FUNCTIONS *****/
 
 async function create(author_id, poster, post_text, title, filters) {
@@ -33,10 +33,23 @@ async function updateStatus(user_id, post_id, status_id) {
 	}
 }
 
-/***** END OF PUBLIC FUNCTIONS *****/
-/***********************************/
+async function likeDislike(user_id, post_id, isLike) {
+	try {
+		const ids = await userModel.getLikedDislikedPosts(user_id);
+		const { liked_posts, disliked_posts, like, dislike } = handleLikeDislike(post_id, ids, isLike);
 
-/*****************************/
+		// update post and user
+		const likesDislikes = await postModel.updateLikesDislikes(post_id, like, dislike);
+		await userModel.updateLikedDislikedPosts(user_id, liked_posts, disliked_posts);
+
+		return likesDislikes;
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
+/***** END OF PUBLIC FUNCTIONS *****/
+
 /***** PRIVATE FUNCTIONS *****/
 
 async function checkAuthorByPostId(user_id, post_id) {
@@ -51,11 +64,49 @@ async function checkAuthorByPostId(user_id, post_id) {
 	}
 }
 
+function handleLikeDislike(post_id, post_ids, isLike) {
+	const result = {
+		liked_posts: undefined,
+		disliked_posts: undefined,
+		like: undefined,
+		dislike: undefined
+	};
+
+	// 1. create variables with values equal to result object keys
+	// if user liked post - primary array (arr1) = liked_posts, interger (int1) = likes
+	const arr1 = isLike ? 'liked_posts' : 'disliked_posts';
+	const arr2 = !isLike ? 'liked_posts' : 'disliked_posts';
+	const int1 = isLike ? 'like' : 'dislike';
+	const int2 = !isLike ? 'like' : 'dislike';
+
+	// 2. check if primary array contains post_id - remove if so, add if not
+	// 3. assign values to primary fields of result object
+	if (post_ids[arr1].includes(post_id)) {
+		result[arr1] = post_ids[arr1].filter(id => id !== post_id);
+		result[int1] = -1;
+	} else {
+		result[arr1] = [...post_ids[arr1], post_id];
+		result[int1] = 1;
+	}
+
+	// 4. check if secondary array contains post_id - remove if so, do nothing if not
+	// 5. assign values to secondary fields of result object
+	if (post_ids[arr2].includes(post_id)) {
+		result[arr2] = post_ids[arr2].filter(id => id !== post_id);
+		result[int2] = -1;
+	} else {
+		result[arr2] = [...post_ids[arr2]];
+		result[int2] = 0;
+	}
+
+	return result;
+}
+
 /***** END OF PRIVATE FUNCTIONS *****/
-/************************************/
 
 module.exports = {
 	create,
 	deletePost,
+	likeDislike,
 	updateStatus
 };

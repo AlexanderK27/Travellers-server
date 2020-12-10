@@ -97,10 +97,30 @@ async function updateStatus(post_id, status_id) {
 	}
 }
 
+async function updateLikesDislikes(post_id, like, dislike) {
+	try {
+		const response = await db.query(
+			`
+			UPDATE posts
+			SET likes = likes + $1, dislikes = dislikes + $2
+			WHERE post_id = $3
+			RETURNING likes, dislikes
+		`,
+			[like, dislike, post_id]
+		);
+
+		return response.rows[0] || Promise.reject('Unable to rate post');
+	} catch (error) {
+		console.log('post model updateLikesDisliked error:', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
 module.exports = {
 	create,
 	deletePost,
 	getAuthorId,
+	updateLikesDislikes,
 	updateStatus,
 	types
 };
