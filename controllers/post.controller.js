@@ -1,5 +1,7 @@
+const postModel = require('../models/post.model');
 const postService = require('../services/post.service');
 const PostValidator = require('../utils/Validator/PostValidator');
+const errorConverter = require('../utils/errorConverter');
 
 async function create(req, res) {
 	const author_id = req.session.user.user_id;
@@ -33,24 +35,39 @@ async function deletePost(req, res) {
 	const user_id = req.session.user.user_id;
 	const post_id = PostValidator.toZeroNaturalOrNull(req.params.id);
 
+	if (!post_id) {
+		return res.status(400).json({ error: 'This post has already been deleted or never existed' });
+	}
+
 	try {
-		if (!post_id) {
-			return res.status(400).json({ error: 'This post has already been deleted or never existed' });
-		}
-
 		await postService.deletePost(user_id, post_id);
-
 		res.sendStatus(204);
 	} catch (error) {
-		if (!error.status || error.message === 'Unkown error') {
-			res.status(500).json({ error: 'Something went wrong. Please try again later.' });
-		} else {
-			res.status(error.status).json({ error: error.message });
-		}
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
+async function updateStatus(req, res) {
+	const post_id = PostValidator.toZeroNaturalOrNull(req.body.post_id);
+	const status_id = req.body.status_id;
+	const user_id = req.session.user.user_id;
+
+	if (!post_id || !postModel.types.post_status[status_id]) {
+		return res.status(400).json({ error: 'Unable to change post status' });
+	}
+
+	try {
+		const status = await postService.updateStatus(user_id, post_id, status_id);
+		res.status(200).json({ message: `Post has been ${status}` });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
 	}
 }
 
 module.exports = {
 	create,
-	deletePost
+	deletePost,
+	updateStatus
 };

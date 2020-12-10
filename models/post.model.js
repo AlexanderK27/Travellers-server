@@ -1,5 +1,13 @@
 const db = require('../db');
 
+const types = {
+	post_status: {
+		1: 'created',
+		2: 'published',
+		3: 'hidden'
+	}
+};
+
 async function create(author_id, posterURL, post_text, title, filters) {
 	const { amount_of_cities, amount_of_countries, amount_of_people, amount_of_days, budget, city, continent, country } =
 		filters || {};
@@ -66,8 +74,33 @@ async function getAuthorId(post_id) {
 	}
 }
 
+async function updateStatus(post_id, status_id) {
+	const status = types.post_status[status_id];
+
+	try {
+		const response = await db.query(
+			`
+			UPDATE posts 
+			SET post_status = $1 
+			WHERE post_id = $2 
+			RETURNING post_status	
+		`,
+			[status, post_id]
+		);
+
+		return response.rows[0]
+			? response.rows[0].post_status
+			: Promise.reject({ status: 400, message: 'This post was deleted or never existed' });
+	} catch (error) {
+		console.log('post model getAuthorId error:', error.message);
+		return Promise.reject({ status: 500, message: 'Unknown error' });
+	}
+}
+
 module.exports = {
 	create,
 	deletePost,
-	getAuthorId
+	getAuthorId,
+	updateStatus,
+	types
 };
