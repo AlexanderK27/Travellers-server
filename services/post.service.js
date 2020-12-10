@@ -12,6 +12,21 @@ async function create(author_id, poster, post_text, title, filters) {
 	}
 }
 
+async function deletePost(user_id, post_id) {
+	try {
+		const author_id = await postModel.getAuthorId(post_id);
+
+		if (user_id !== author_id) {
+			return Promise.reject({ status: 401, message: 'You are not the author of this post' });
+		}
+
+		await postModel.deletePost(post_id);
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 module.exports = {
-	create
+	create,
+	deletePost
 };
