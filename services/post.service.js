@@ -24,6 +24,24 @@ async function deletePost(user_id, post_id) {
 	}
 }
 
+async function getPost(post_id, user_id) {
+	try {
+		if (!user_id) {
+			return await postModel.getPublishedPost(post_id);
+		}
+
+		const author_id = await postModel.getAuthorId(post_id);
+
+		if (user_id === author_id) {
+			return await postModel.getPost(post_id);
+		} else {
+			return await postModel.getPublishedPost(post_id);
+		}
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 async function updateStatus(user_id, post_id, status_id) {
 	try {
 		await checkAuthorByPostId(user_id, post_id);
@@ -107,6 +125,7 @@ function handleLikeDislike(post_id, post_ids, isLike) {
 module.exports = {
 	create,
 	deletePost,
+	getPost,
 	likeDislike,
 	updateStatus
 };

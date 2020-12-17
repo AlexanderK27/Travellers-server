@@ -1,5 +1,7 @@
 const db = require('../db');
 
+const postNotFoundMessage = 'This post was deleted or never existed';
+
 const types = {
 	post_status: {
 		1: 'created',
@@ -51,8 +53,8 @@ async function deletePost(post_id) {
 		return (
 			response.rows[0] ||
 			Promise.reject({
-				status: 400,
-				message: 'This post has already been deleted or never existed'
+				status: 404,
+				message: postNotFoundMessage
 			})
 		);
 	} catch (error) {
@@ -67,9 +69,37 @@ async function getAuthorId(post_id) {
 
 		return response.rows[0]
 			? response.rows[0].author_id
-			: Promise.reject({ status: 400, message: 'This post was deleted or never existed' });
+			: Promise.reject({ status: 404, message: postNotFoundMessage });
 	} catch (error) {
 		console.log('post model getAuthorId error:', error.message);
+		return Promise.reject({ status: 500, message: 'Unknown error' });
+	}
+}
+
+async function getPost(post_id) {
+	try {
+		const response = await db.query('SELECT * FROM posts WHERE post_id = $1', [post_id]);
+		return response.rows[0] || Promise.reject({ status: 404, message: postNotFoundMessage });
+	} catch (error) {
+		console.log('post model getPublishedPost error:', error.message);
+		return Promise.reject({ status: 500, message: 'Unknown error' });
+	}
+}
+
+async function getPublishedPost(post_id) {
+	try {
+		const response = await db.query(
+			`
+			SELECT *
+			FROM posts 
+			WHERE post_id = $1 AND post_status = 'published'
+		`,
+			[post_id]
+		);
+
+		return response.rows[0] || Promise.reject({ status: 404, message: postNotFoundMessage });
+	} catch (error) {
+		console.log('post model getPublishedPost error:', error.message);
 		return Promise.reject({ status: 500, message: 'Unknown error' });
 	}
 }
@@ -90,7 +120,7 @@ async function updateStatus(post_id, status_id) {
 
 		return response.rows[0]
 			? response.rows[0].post_status
-			: Promise.reject({ status: 400, message: 'This post was deleted or never existed' });
+			: Promise.reject({ status: 404, message: postNotFoundMessage });
 	} catch (error) {
 		console.log('post model getAuthorId error:', error.message);
 		return Promise.reject({ status: 500, message: 'Unknown error' });
@@ -120,6 +150,8 @@ module.exports = {
 	create,
 	deletePost,
 	getAuthorId,
+	getPost,
+	getPublishedPost,
 	updateLikesDislikes,
 	updateStatus,
 	types

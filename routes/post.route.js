@@ -4,6 +4,8 @@ const postController = require('../controllers/post.controller');
 
 const router = Router();
 
+router.get('/:id', postController.getPost);
+
 router.use(authMiddleware);
 
 router.post('/create', postController.create);
