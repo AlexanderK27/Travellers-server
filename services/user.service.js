@@ -1,4 +1,5 @@
 const userModel = require('../models/user.model');
+const postModel = require('../models/post.model');
 
 async function deleteAccount(user_id) {
 	try {
@@ -8,6 +9,18 @@ async function deleteAccount(user_id) {
 	}
 }
 
+async function getMyProfile(user_id) {
+	try {
+		const user = await userModel.getMyProfileData(user_id);
+		const posts = await postModel.getMyPosts(user_id);
+
+		return { user, posts };
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 module.exports = {
-	deleteAccount
+	deleteAccount,
+	getMyProfile
 };

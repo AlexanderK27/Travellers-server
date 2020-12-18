@@ -76,6 +76,25 @@ async function getAuthorId(post_id) {
 	}
 }
 
+async function getMyPosts(user_id) {
+	try {
+		const response = await db.query(
+			`
+			SELECT post_id, post_created_at, poster, post_status, title
+			FROM posts
+			WHERE author_id = $1
+			ORDER BY post_created_at DESC
+		`,
+			[user_id]
+		);
+
+		return response.rows;
+	} catch (error) {
+		console.log('post model getMyPosts error:', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
 async function getPost(post_id) {
 	try {
 		const response = await db.query('SELECT * FROM posts WHERE post_id = $1', [post_id]);
@@ -150,6 +169,7 @@ module.exports = {
 	create,
 	deletePost,
 	getAuthorId,
+	getMyPosts,
 	getPost,
 	getPublishedPost,
 	updateLikesDislikes,

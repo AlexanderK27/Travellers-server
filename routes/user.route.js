@@ -6,6 +6,7 @@ const router = Router();
 
 router.use(authMiddleware);
 
+router.get('/profile', userController.getMyProfile);
 router.delete('/account', userController.deleteAccount);
 
 module.exports = router;

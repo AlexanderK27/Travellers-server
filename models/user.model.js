@@ -85,6 +85,26 @@ async function getLikedDislikedPosts(user_id) {
 	}
 }
 
+async function getMyProfileData(user_id) {
+	try {
+		const response = await db.query(
+			`
+			SELECT 
+				avatar, bio, contact, disliked_posts, followers, followings,
+				liked_posts, minAvatar, real_name, saved_posts, username
+			FROM users
+			WHERE user_id = $1
+		`,
+			[user_id]
+		);
+
+		return response.rows[0] || Promise.reject({ status: 404, message: 'User not found' });
+	} catch (error) {
+		console.log('user model getMyProfileData error:', error.message);
+		return Promise.reject('Unkown error');
+	}
+}
+
 async function updateLikedDislikedPosts(user_id, liked_posts, disliked_posts) {
 	try {
 		const response = await db.query(
@@ -111,5 +131,6 @@ module.exports = {
 	deleteAccount,
 	findByEmail,
 	getLikedDislikedPosts,
+	getMyProfileData,
 	updateLikedDislikedPosts
 };
