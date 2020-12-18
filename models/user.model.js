@@ -33,6 +33,18 @@ async function create(username, email, password) {
 	}
 }
 
+async function deleteAccount(user_id) {
+	try {
+		const response = await db.query('DELETE FROM users WHERE user_id = $1', [user_id]);
+		return response.rowCount
+			? { status: 200, message: 'Your account has been deleted' }
+			: Promise.reject({ status: 404, message: 'User not found' });
+	} catch (error) {
+		console.log('user model deleteAccount error:', error.message);
+		Promise.reject({ status: 500, message: 'Unable to delete account. Please contact support' });
+	}
+}
+
 async function findByEmail(email) {
 	try {
 		const response = await db.query(
@@ -96,6 +108,7 @@ module.exports = {
 	checkEmail,
 	checkUsername,
 	create,
+	deleteAccount,
 	findByEmail,
 	getLikedDislikedPosts,
 	updateLikedDislikedPosts
