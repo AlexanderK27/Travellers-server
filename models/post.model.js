@@ -63,6 +63,16 @@ async function deletePost(post_id) {
 	}
 }
 
+async function getAmountOfUsersPosts(user_id) {
+	try {
+		const response = await db.query('SELECT COUNT(post_id) FROM posts WHERE author_id = $1', [user_id]);
+		return response.rows[0].count;
+	} catch (error) {
+		console.log('post model getAmountOfUsersPosts error:', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
 async function getAuthorId(post_id) {
 	try {
 		const response = await db.query('SELECT author_id FROM posts WHERE post_id = $1', [post_id]);
@@ -168,6 +178,7 @@ async function updateLikesDislikes(post_id, like, dislike) {
 module.exports = {
 	create,
 	deletePost,
+	getAmountOfUsersPosts,
 	getAuthorId,
 	getMyPosts,
 	getPost,

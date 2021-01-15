@@ -48,6 +48,18 @@ async function deletePost(req, res) {
 	}
 }
 
+async function getMyPosts(req, res) {
+	const user_id = req.session.user.user_id;
+
+	try {
+		const posts = await postService.getMyPosts(user_id);
+		res.status(200).json({ payload: posts });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
 async function getPost(req, res) {
 	const post_id = PostValidator.toZeroNaturalOrNull(req.params.id);
 	const user_id = req.session.user && req.session.user.user_id;
@@ -105,6 +117,7 @@ async function ratePost(req, res) {
 module.exports = {
 	create,
 	deletePost,
+	getMyPosts,
 	getPost,
 	ratePost,
 	updateStatus

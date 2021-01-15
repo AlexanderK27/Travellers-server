@@ -24,6 +24,14 @@ async function deletePost(user_id, post_id) {
 	}
 }
 
+async function getMyPosts(user_id) {
+	try {
+		return await postModel.getMyPosts(user_id);
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 async function getPost(post_id, user_id) {
 	try {
 		if (!user_id) {
@@ -125,6 +133,7 @@ function handleLikeDislike(post_id, post_ids, isLike) {
 module.exports = {
 	create,
 	deletePost,
+	getMyPosts,
 	getPost,
 	likeDislike,
 	updateStatus

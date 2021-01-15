@@ -4,13 +4,14 @@ const postController = require('../controllers/post.controller');
 
 const router = Router();
 
-router.get('/:id', postController.getPost);
+router.get('/one/:id', postController.getPost);
 
 router.use(authMiddleware);
 
+router.get('/my', postController.getMyPosts);
 router.post('/create', postController.create);
 router.patch('/rate', postController.ratePost);
 router.patch('/status', postController.updateStatus);
-router.delete('/:id', postController.deletePost);
+router.delete('/one/:id', postController.deletePost);
 
 module.exports = router;
