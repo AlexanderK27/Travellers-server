@@ -19,6 +19,17 @@ const requestParams = {
 	Bucket: process.env.S3_BUCKET_NAME
 };
 
+async function getImage(folderName, fileName) {
+	try {
+		const params = { ...requestParams, Key: folderName + '/' + fileName + '.jpg' };
+		const response = await S3.getObject(params).promise();
+		return response.Body;
+	} catch (e) {
+		console.log('Error occurred during getting image:', e.message);
+		return Promise.reject({ status: 500, message: 'Unable to get an image' });
+	}
+}
+
 async function resizeImage(buffer, type) {
 	const width = image_dimentions[type].width;
 	const height = image_dimentions[type].height;
