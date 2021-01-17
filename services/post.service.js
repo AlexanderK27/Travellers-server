@@ -1,15 +1,19 @@
 const postModel = require('../models/post.model');
 const userModel = require('../models/user.model');
+const imageService = require('./image.service');
 
 /***** PUBLIC FUNCTIONS *****/
 
 async function create(author_id, poster, post_text, title, filters) {
-	try {
-		// TODO:
-		// call service to insert poster to the file system and to get url
-		const posterURL = '';
+	let fileName = null;
 
-		await postModel.create(author_id, posterURL, post_text, title, filters);
+	try {
+		if (poster) {
+			const image = await imageService.resizeImage(poster, 'poster');
+			fileName = await imageService.uploadImage(image, 'poster');
+		}
+
+		await postModel.create(author_id, fileName, post_text, title, filters);
 	} catch (error) {
 		return Promise.reject(error);
 	}

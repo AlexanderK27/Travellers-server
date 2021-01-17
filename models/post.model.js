@@ -10,7 +10,7 @@ const types = {
 	}
 };
 
-async function create(author_id, posterURL, post_text, title, filters) {
+async function create(author_id, posterFileName, post_text, title, filters) {
 	const { amount_of_cities, amount_of_countries, amount_of_people, amount_of_days, budget, city, continent, country } =
 		filters || {};
 
@@ -25,7 +25,7 @@ async function create(author_id, posterURL, post_text, title, filters) {
       `,
 			[
 				author_id,
-				posterURL,
+				posterFileName,
 				post_text,
 				title,
 				amount_of_cities,

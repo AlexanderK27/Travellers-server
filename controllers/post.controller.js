@@ -17,6 +17,8 @@ async function create(req, res) {
 		return res.status(400).json({ error });
 	}
 
+	poster = poster ? Buffer.from(poster, 'base64') : null;
+
 	// saving new post
 	try {
 		await postService.create(author_id, poster, post_text, title, filters);
