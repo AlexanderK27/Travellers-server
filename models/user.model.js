@@ -13,23 +13,31 @@ async function checkEmail(email) {
 async function checkUsername(username) {
 	try {
 		const response = await db.query('SELECT username FROM users WHERE username = $1', [username]);
-		return response.rows[0] && Promise.reject('username exists');
+		return response.rowCount && Promise.reject('Username exists');
 	} catch (error) {
-		console.log('getUsername', error.message);
-		Promise.reject('Unknown error');
+		console.log('checkUsername', error.message);
+		return Promise.reject('Unknown error');
 	}
 }
 
 async function create(username, email, password) {
 	try {
 		const response = await db.query(
-			'INSERT INTO users (username, user_email, user_password) VALUES ($1, $2, $3) RETURNING user_id',
+			`INSERT INTO users 
+					(username, user_email, user_password) 
+				VALUES 
+					($1, $2, $3) 
+				RETURNING 
+					avatar, bio, contact, disliked_posts,
+					followers, followings, liked_posts, real_name,
+					saved_posts, user_id
+			`,
 			[username, email, password]
 		);
 		return response.rows[0] || Promise.reject('unable to create user');
 	} catch (error) {
 		console.log('create', error.message);
-		Promise.reject('Unknown error');
+		return Promise.reject('Unknown error');
 	}
 }
 
@@ -91,7 +99,7 @@ async function getMyProfileData(user_id) {
 			`
 			SELECT 
 				avatar, bio, contact, disliked_posts, followers, followings,
-				liked_posts, minAvatar, real_name, saved_posts, username
+				liked_posts, real_name, saved_posts, username
 			FROM users
 			WHERE user_id = $1
 		`,
@@ -102,6 +110,25 @@ async function getMyProfileData(user_id) {
 	} catch (error) {
 		console.log('user model getMyProfileData error:', error.message);
 		return Promise.reject('Unkown error');
+	}
+}
+
+async function saveProfileData(user_id, avatarFileName, bio, contact, real_name) {
+	try {
+		const response = await db.query(
+			`
+			UPDATE users
+			SET avatar = $1, bio = $2, contact = $3, real_name = $4
+			WHERE user_id = $5
+			RETURNING user_id
+		`,
+			[avatarFileName, bio, contact, real_name, user_id]
+		);
+
+		return response.rows[0] || Promise.reject('User not found');
+	} catch (error) {
+		console.log('saveProfileData', error.message);
+		Promise.reject('Unknown error');
 	}
 }
 
@@ -132,5 +159,6 @@ module.exports = {
 	findByEmail,
 	getLikedDislikedPosts,
 	getMyProfileData,
+	saveProfileData,
 	updateLikedDislikedPosts
 };

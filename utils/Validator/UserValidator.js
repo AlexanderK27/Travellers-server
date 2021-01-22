@@ -3,41 +3,63 @@ const normalizeEmail = require('validator/lib/normalizeEmail');
 const Validator = require('./Validator');
 
 class UserValidator extends Validator {
-	constructor(isEmail, normalizeEmail, options) {
-		super(options);
-
-		this.isEmail = isEmail;
-		this.normalizeEmail = normalizeEmail;
+	constructor() {
+		super();
 	}
 
-	async email(value, errorMessage = 'Invalid email') {
+	static async bio(value, errorMessage = 'Invalid bio') {
 		if (!this.isString(value)) return Promise.reject(errorMessage);
 
 		value = value.trim();
 
-		if (!this.isEmail(value) || value.length > 30) return Promise.reject(errorMessage);
-
-		return this.normalizeEmail(value);
+		if (value.length > 150) return Promise.reject('Bio is to long');
+		return value;
 	}
 
-	async password(value, errorMessage = 'Invalid password') {
+	static async contact(value, errorMessage = 'Invalid contact') {
+		if (!this.isString(value)) return Promise.reject(errorMessage);
+
+		value = value.trim();
+
+		if (value.length > 50) return Promise.reject('Contact is to long');
+		return value;
+	}
+
+	static async email(value, errorMessage = 'Invalid email') {
+		if (!this.isString(value)) return Promise.reject(errorMessage);
+
+		value = value.trim();
+
+		if (!isEmail(value) || value.length > 30) return Promise.reject(errorMessage);
+
+		return normalizeEmail(value);
+	}
+
+	static async password(value, errorMessage = 'Invalid password') {
 		if (!this.isString(value) || value.length < 8 || value.length > 30) {
 			return Promise.reject(errorMessage);
 		}
 		return value;
 	}
 
-	async username(value, errorMessage = 'Invalid username') {
+	static async real_name(value, errorMessage = 'Invalid name') {
 		if (!this.isString(value)) return Promise.reject(errorMessage);
 
 		value = value.trim();
 
-		if (value.length < 3 || value.length > 20 || !/^[a-zA-Z0-9._]+$/.test(value)) {
-			return Promise.reject(errorMessage);
-		}
+		if (value.length > 50) return Promise.reject('Name is to long');
+		return value;
+	}
+
+	static async username(value, errorMessage = 'Invalid username') {
+		if (!this.isString(value)) return Promise.reject(errorMessage);
+
+		value = value.trim();
+
+		if (!this.isUsernameValid(value)) return Promise.reject(errorMessage);
 
 		return value;
 	}
 }
 
-module.exports = new UserValidator(isEmail, normalizeEmail);
+module.exports = UserValidator;
