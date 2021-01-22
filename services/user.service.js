@@ -10,6 +10,26 @@ async function deleteAccount(user_id) {
 	}
 }
 
+async function followAuthor(author_username, followings, user_id) {
+	try {
+		const author_id = await userModel.getIdByUsername(author_username);
+		const iFollow = followings.includes(author_id);
+
+		if (iFollow) {
+			followings = followings.filter(id => id !== author_id);
+		} else {
+			followings.push(author_id);
+		}
+
+		await userModel.updateFollowings(user_id, followings);
+		await userModel.updateFollowers(author_id, user_id, iFollow);
+
+		return followings;
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 async function getAuthorProfile(author_username, user_followings) {
 	try {
 		const profile = await userModel.getAuthorProfile(author_username);
@@ -69,6 +89,7 @@ async function saveProfileData(user_id, avatar, bio, contact, real_name) {
 
 module.exports = {
 	deleteAccount,
+	followAuthor,
 	getAuthorProfile,
 	getMyProfile,
 	saveProfileData

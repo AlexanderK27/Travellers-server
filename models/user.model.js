@@ -94,6 +94,28 @@ async function getAuthorProfile(username) {
 	}
 }
 
+async function getIdByUsername(username) {
+	try {
+		const response = await db.query(
+			`
+			SELECT user_id 
+			FROM users 
+			WHERE username = $1
+		`,
+			[username]
+		);
+
+		if (response.rows[0]) {
+			return response.rows[0].user_id;
+		} else {
+			return Promise.reject({ status: 404, message: 'User not found' });
+		}
+	} catch (error) {
+		console.log('getIdByUsername', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
 async function getLikedDislikedPosts(user_id) {
 	try {
 		const response = await db.query(
@@ -156,6 +178,50 @@ async function saveProfileData(user_id, avatarFileName, bio, contact, real_name)
 	}
 }
 
+async function updateFollowers(user_id, follower_id, unfollow) {
+	let newFollowers = 'array_append(followers, $1)';
+
+	if (unfollow) {
+		newFollowers = 'array_remove(followers, $1)';
+	}
+
+	try {
+		const response = await db.query(
+			`
+			UPDATE users
+			SET followers = ${newFollowers}
+			WHERE user_id = $2
+			RETURNING followers
+		`,
+			[follower_id, user_id]
+		);
+
+		return response.rows[0] || Promise.reject({ status: 500, message: 'Unable to (un)follow this user' });
+	} catch (error) {
+		console.log('updateFollowers', error.message);
+		Promise.reject('Unknown error');
+	}
+}
+
+async function updateFollowings(user_id, followings) {
+	try {
+		const response = await db.query(
+			`
+			UPDATE users
+			SET followings = $1
+			WHERE user_id = $2
+			RETURNING followings
+		`,
+			[followings, user_id]
+		);
+
+		return response.rows[0] || Promise.reject({ status: 500, message: 'Unable to (un)follow this user' });
+	} catch (error) {
+		console.log('updateFollowings', error.message);
+		Promise.reject('Unknown error');
+	}
+}
+
 async function updateLikedDislikedPosts(user_id, liked_posts, disliked_posts) {
 	try {
 		const response = await db.query(
@@ -182,8 +248,11 @@ module.exports = {
 	deleteAccount,
 	findByEmail,
 	getAuthorProfile,
+	getIdByUsername,
 	getLikedDislikedPosts,
 	getMyProfileData,
 	saveProfileData,
+	updateFollowers,
+	updateFollowings,
 	updateLikedDislikedPosts
 };

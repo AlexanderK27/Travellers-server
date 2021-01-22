@@ -4,6 +4,8 @@ const userController = require('../controllers/user.controller');
 
 const router = Router();
 
+router.post('/follow', userController.followAuthor);
+
 router.use(authMiddleware);
 
 router.delete('/account', userController.deleteAccount);

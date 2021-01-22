@@ -14,6 +14,22 @@ async function deleteAccount(req, res) {
 	}
 }
 
+async function followAuthor(req, res) {
+	const { user_id, followings } = req.session.user;
+
+	try {
+		const a_username = await UserValidator.username(req.body.username);
+
+		const newFollowings = await userService.followAuthor(a_username, followings, user_id);
+
+		req.session.user.followings = newFollowings;
+		res.status(200).json({ payload: newFollowings.length });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
 async function getAuthorProfile(req, res) {
 	const followings = req.session.user ? req.session.user.followings : [];
 	const author = req.params.username;
@@ -69,6 +85,7 @@ async function setProfileData(req, res) {
 
 module.exports = {
 	deleteAccount,
+	followAuthor,
 	getAuthorProfile,
 	getMyProfile,
 	setProfileData
