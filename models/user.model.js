@@ -70,6 +70,30 @@ async function findByEmail(email) {
 	}
 }
 
+async function getAuthorProfile(username) {
+	try {
+		const response = await db.query(
+			`
+				SELECT
+					avatar, bio, contact, followers, 
+					followings, real_name, user_id
+				FROM users
+				WHERE username = $1
+			`,
+			[username]
+		);
+
+		if (response.rowCount) {
+			return response.rows[0];
+		} else {
+			return Promise.reject({ status: 404, message: 'User not found' });
+		}
+	} catch (error) {
+		console.log('getAuthorProfile', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
 async function getLikedDislikedPosts(user_id) {
 	try {
 		const response = await db.query(
@@ -157,6 +181,7 @@ module.exports = {
 	create,
 	deleteAccount,
 	findByEmail,
+	getAuthorProfile,
 	getLikedDislikedPosts,
 	getMyProfileData,
 	saveProfileData,

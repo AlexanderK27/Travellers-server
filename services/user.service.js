@@ -10,6 +10,23 @@ async function deleteAccount(user_id) {
 	}
 }
 
+async function getAuthorProfile(author_username, user_followings) {
+	try {
+		const profile = await userModel.getAuthorProfile(author_username);
+		const { user_id, ...profileData } = profile;
+
+		profileData.iFollow = user_followings.includes(profile.user_id);
+		profileData.followings = profile.followings.length;
+		profileData.followers = profile.followers.length;
+
+		const posts = await postModel.getAuthorPosts(user_id);
+
+		return { profile: profileData, posts };
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 async function getMyProfile(user_id) {
 	try {
 		const user = await userModel.getMyProfileData(user_id);
@@ -52,6 +69,7 @@ async function saveProfileData(user_id, avatar, bio, contact, real_name) {
 
 module.exports = {
 	deleteAccount,
+	getAuthorProfile,
 	getMyProfile,
 	saveProfileData
 };

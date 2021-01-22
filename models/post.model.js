@@ -1,4 +1,5 @@
 const db = require('../db');
+const filterService = require('../services/filter.service');
 
 const postNotFoundMessage = 'This post was deleted or never existed';
 
@@ -86,6 +87,25 @@ async function getAuthorId(post_id) {
 	}
 }
 
+async function getAuthorPosts(user_id) {
+	try {
+		const response = await db.query(
+			`
+			SELECT title, poster, post_id, post_created_at
+			FROM posts
+			WHERE author_id = $1 AND post_status = 'published'
+			ORDER BY post_created_at DESC
+		`,
+			[user_id]
+		);
+
+		return response.rows;
+	} catch (error) {
+		console.log('getAuthorPosts:', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
 async function getMyPosts(user_id) {
 	try {
 		const response = await db.query(
@@ -107,7 +127,16 @@ async function getMyPosts(user_id) {
 
 async function getPost(post_id) {
 	try {
-		const response = await db.query('SELECT * FROM posts WHERE post_id = $1', [post_id]);
+		const response = await db.query(
+			`
+			SELECT posts.*, users.avatar
+			FROM posts 
+			LEFT JOIN users 
+			ON author_id = user_id 
+			WHERE post_id = $1
+		`,
+			[post_id]
+		);
 		return response.rows[0] || Promise.reject({ status: 404, message: postNotFoundMessage });
 	} catch (error) {
 		console.log('post model getPublishedPost error:', error.message);
@@ -119,8 +148,10 @@ async function getPublishedPost(post_id) {
 	try {
 		const response = await db.query(
 			`
-			SELECT *
+			SELECT posts.*, users.avatar
 			FROM posts 
+			LEFT JOIN users 
+			ON author_id = user_id 
 			WHERE post_id = $1 AND post_status = 'published'
 		`,
 			[post_id]
@@ -180,6 +211,7 @@ module.exports = {
 	deletePost,
 	getAmountOfUsersPosts,
 	getAuthorId,
+	getAuthorPosts,
 	getMyPosts,
 	getPost,
 	getPublishedPost,

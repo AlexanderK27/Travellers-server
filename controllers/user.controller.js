@@ -14,6 +14,19 @@ async function deleteAccount(req, res) {
 	}
 }
 
+async function getAuthorProfile(req, res) {
+	const followings = req.session.user ? req.session.user.followings : [];
+	const author = req.params.username;
+
+	try {
+		const profileAndPosts = await userService.getAuthorProfile(author, followings);
+		res.status(200).json({ payload: profileAndPosts });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
 async function getMyProfile(req, res) {
 	const user_id = req.session.user.user_id;
 
@@ -56,6 +69,7 @@ async function setProfileData(req, res) {
 
 module.exports = {
 	deleteAccount,
+	getAuthorProfile,
 	getMyProfile,
 	setProfileData
 };
