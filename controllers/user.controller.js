@@ -1,3 +1,4 @@
+const { validate: isUuid } = require('uuid');
 const userService = require('../services/user.service');
 const errorConverter = require('../utils/errorConverter');
 const UserValidator = require('../utils/Validator/UserValidator');
@@ -57,29 +58,69 @@ async function getMyProfile(req, res) {
 }
 
 async function setProfileData(req, res) {
-	const user_id = req.session.user.user_id;
+	const user = req.session.user;
+	const user_id = user.user_id;
 	let { avatar, bio, contact, real_name } = req.body;
+	let avatarFileName = '';
+	let anyProfData = false;
+	let responseMsg;
+
+	try {
+		if (avatar && !isUuid(avatar)) {
+			avatarFileName = await saveAvatar(user_id, avatar);
+		}
+
+		bio === undefined ? (bio = user.bio) : (anyProfData = true);
+		contact === undefined ? (contact = user.contact) : (anyProfData = true);
+		real_name === undefined ? (real_name = user.real_name) : (anyProfData = true);
+
+		if (anyProfData) {
+			await saveProfileData(user_id, { bio, contact, real_name });
+			responseMsg = 'Profile data has been saved';
+		} else {
+			responseMsg = 'Avatar has been saved';
+		}
+
+		res.status(201).json({ message: responseMsg, payload: avatarFileName });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
+async function saveAvatar(user_id, avatar) {
+	const invalidAvatarMsg = 'Invalid avatar format';
+
+	try {
+		avatar = await UserValidator.isBase64(avatar, invalidAvatarMsg);
+		avatar = UserValidator.toBufferOrNull(avatar);
+
+		return await userService.saveAvatar(user_id, avatar);
+	} catch (error) {
+		if (error === invalidAvatarMsg) {
+			return Promise.reject({ status: 400, message: invalidAvatarMsg });
+		}
+		return Promise.reject(error);
+	}
+}
+
+async function saveProfileData(user_id, profileData) {
+	let { bio, contact, real_name } = profileData;
 
 	// validation
 	try {
-		avatar = await UserValidator.isBase64(avatar, 'Invalid avatar format');
 		bio = await UserValidator.bio(bio);
 		contact = await UserValidator.contact(contact);
 		real_name = await UserValidator.real_name(real_name);
 	} catch (error) {
-		return res.status(400).json({ error: error.message || error });
+		return Promise.reject({ status: 400, message: error });
 	}
-
-	avatar = UserValidator.toBufferOrNull(avatar);
 
 	// saving profile data
 	try {
-		const avatarFileName = await userService.saveProfileData(user_id, avatar, bio, contact, real_name);
-
-		res.status(201).json({ message: 'Profile data has been saved', payload: avatarFileName });
+		await userService.saveProfileData(user_id, bio, contact, real_name);
 	} catch (error) {
-		const { status, message } = errorConverter(error);
-		res.status(status).json({ error: message });
+		return Promise.reject(error);
 	}
 }
 

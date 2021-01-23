@@ -67,20 +67,28 @@ async function getMyProfile(user_id) {
 	}
 }
 
-async function saveProfileData(user_id, avatar, bio, contact, real_name) {
+async function saveAvatar(user_id, avatar) {
 	let avFileName = null;
 
 	try {
-		if (avatar) {
-			const resAvatar = await imageService.resizeImage(avatar, 'avatar');
-			const minAvatar = await imageService.resizeImage(avatar, 'minAvatar');
+		const resAvatar = await imageService.resizeImage(avatar, 'avatar');
+		const minAvatar = await imageService.resizeImage(avatar, 'minAvatar');
 
-			avFileName = await imageService.uploadImage(resAvatar, 'avatar');
-			await imageService.uploadImage(minAvatar, 'avatar-min', avFileName);
-		}
+		avFileName = await imageService.uploadImage(resAvatar, 'avatar');
+		await imageService.uploadImage(minAvatar, 'avatar-min', avFileName);
 
-		await userModel.saveProfileData(user_id, avFileName, bio, contact, real_name);
+		await userModel.saveAvatar(user_id, avFileName);
+
 		return avFileName;
+	} catch (error) {
+		console.log('saveAvatar ERROR:', error);
+		return Promise.reject(error);
+	}
+}
+
+async function saveProfileData(user_id, bio, contact, real_name) {
+	try {
+		await userModel.saveProfileData(user_id, bio, contact, real_name);
 	} catch (error) {
 		console.log('saveProfileData ERROR:', error);
 		return Promise.reject(error);
@@ -92,5 +100,6 @@ module.exports = {
 	followAuthor,
 	getAuthorProfile,
 	getMyProfile,
+	saveAvatar,
 	saveProfileData
 };

@@ -159,21 +159,59 @@ async function getMyProfileData(user_id) {
 	}
 }
 
-async function saveProfileData(user_id, avatarFileName, bio, contact, real_name) {
+async function saveAvatar(user_id, avatarFileName) {
 	try {
 		const response = await db.query(
 			`
 			UPDATE users
-			SET avatar = $1, bio = $2, contact = $3, real_name = $4
-			WHERE user_id = $5
+			SET avatar = $1
+			WHERE user_id = $2
 			RETURNING user_id
 		`,
-			[avatarFileName, bio, contact, real_name, user_id]
+			[avatarFileName, user_id]
+		);
+
+		return response.rows[0] || Promise.reject('User not found');
+	} catch (error) {
+		console.log('saveAvatar', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
+async function saveProfileData(user_id, bio, contact, real_name) {
+	try {
+		const response = await db.query(
+			`
+			UPDATE users
+			SET bio = $1, contact = $2, real_name = $3
+			WHERE user_id = $4
+			RETURNING user_id
+		`,
+			[bio, contact, real_name, user_id]
 		);
 
 		return response.rows[0] || Promise.reject('User not found');
 	} catch (error) {
 		console.log('saveProfileData', error.message);
+		return Promise.reject('Unknown error');
+	}
+}
+
+async function updateEmail(user_id, email) {
+	try {
+		const response = await db.query(
+			`
+			UPDATE users
+			SET user_email = $1
+			WHERE user_id = $2
+			RETURNING user_email
+		`,
+			[email, user_id]
+		);
+
+		return response.rows[0] || Promise.reject({ status: 404, message: 'User not found' });
+	} catch (error) {
+		console.log('updateEmail', error.message);
 		Promise.reject('Unknown error');
 	}
 }
@@ -241,6 +279,25 @@ async function updateLikedDislikedPosts(user_id, liked_posts, disliked_posts) {
 	}
 }
 
+async function updatePassword(user_id, password) {
+	try {
+		const response = await db.query(
+			`
+			UPDATE users
+			SET user_password = $1
+			WHERE user_id = $2
+			RETURNING user_password
+		`,
+			[password, user_id]
+		);
+
+		return response.rows[0] || Promise.reject({ status: 404, message: 'User not found' });
+	} catch (error) {
+		console.log('updatePassword', error.message);
+		Promise.reject('Unknown error');
+	}
+}
+
 module.exports = {
 	checkEmail,
 	checkUsername,
@@ -251,8 +308,11 @@ module.exports = {
 	getIdByUsername,
 	getLikedDislikedPosts,
 	getMyProfileData,
+	saveAvatar,
 	saveProfileData,
+	updateEmail,
 	updateFollowers,
 	updateFollowings,
-	updateLikedDislikedPosts
+	updateLikedDislikedPosts,
+	updatePassword
 };
