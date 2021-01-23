@@ -279,25 +279,6 @@ async function updateLikedDislikedPosts(user_id, liked_posts, disliked_posts) {
 	}
 }
 
-async function updatePassword(user_id, password) {
-	try {
-		const response = await db.query(
-			`
-			UPDATE users
-			SET user_password = $1
-			WHERE user_id = $2
-			RETURNING user_password
-		`,
-			[password, user_id]
-		);
-
-		return response.rows[0] || Promise.reject({ status: 404, message: 'User not found' });
-	} catch (error) {
-		console.log('updatePassword', error.message);
-		Promise.reject('Unknown error');
-	}
-}
-
 module.exports = {
 	checkEmail,
 	checkUsername,

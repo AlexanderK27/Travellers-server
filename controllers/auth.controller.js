@@ -1,5 +1,29 @@
 const authService = require('../services/auth.service');
+const userService = require('../services/user.service');
+const errorConverter = require('../utils/errorConverter');
 const UserValidator = require('../utils/Validator/UserValidator');
+
+async function changeEmail(req, res) {
+	const user_id = req.session.user.user_id;
+	let email = req.body.email;
+
+	try {
+		email = await UserValidator.email(email);
+	} catch (error) {
+		return res.status(400).json({ error: 'Invalid email' });
+	}
+
+	try {
+		await authService.updateEmail(user_id, email);
+		res.status(200).json({ message: 'Email has been updated' });
+	} catch (error) {
+		if (error === 'email exists') {
+			return res.status(400).json({ error: 'Invalid email' });
+		}
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
 
 async function checkUsername(req, res) {
 	try {
@@ -30,9 +54,11 @@ async function login(req, res) {
 
 	// logging in
 	try {
-		const user = await authService.login(email, password);
+		const { user_id } = await authService.login(email, password);
+		const { user, dataForUser } = await userService.getMyProfile(user_id);
+
 		req.session.user = user;
-		res.status(200).json({ payload: { username: user.username } });
+		res.status(200).json({ payload: dataForUser });
 	} catch (error) {
 		res.status(400).json({ error: 'Invalid email or password' });
 	}
@@ -58,10 +84,10 @@ async function signup(req, res) {
 
 	// creating new user
 	try {
-		const user_id = await authService.signup(username, email, password);
+		const { user, dataForUser } = await authService.signup(username, email, password);
 
-		req.session.user = { user_id };
-		res.status(201).json({ message: 'Account has been created' });
+		req.session.user = user;
+		res.status(201).json({ message: 'Account has been created', payload: dataForUser });
 	} catch (error) {
 		if (error === 'username exists') {
 			res.status(400).json({ error: 'Sorry, username is taken by another user' });
@@ -73,8 +99,4 @@ async function signup(req, res) {
 	}
 }
 
-module.exports = {
-	checkUsername,
-	login,
-	signup
-};
+module.exports = { changeEmail, checkUsername, login, signup };
