@@ -41,6 +41,25 @@ async function checkUsername(req, res) {
 	}
 }
 
+async function changePassword(req, res) {
+	const user_id = req.session.user.user_id;
+	let password = req.body.password;
+
+	try {
+		password = await UserValidator.password(password);
+	} catch (error) {
+		return res.status(400).json({ error: 'Invalid password' });
+	}
+
+	try {
+		await authService.updatePassword(user_id, password);
+		res.status(200).json({ message: 'Password has been updated' });
+	} catch (error) {
+		const { status, message } = errorConverter(error);
+		res.status(status).json({ error: message });
+	}
+}
+
 async function login(req, res) {
 	let { email, password } = req.body;
 
@@ -99,4 +118,4 @@ async function signup(req, res) {
 	}
 }
 
-module.exports = { changeEmail, checkUsername, login, signup };
+module.exports = { changeEmail, changePassword, checkUsername, login, signup };

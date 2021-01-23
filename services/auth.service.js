@@ -56,9 +56,19 @@ async function updateEmail(user_id, email) {
 	}
 }
 
+async function updatePassword(user_id, password) {
+	try {
+		const hashedPassword = await bcrypt.hash(password, 10);
+		await userModel.updatePassword(user_id, hashedPassword);
+	} catch (error) {
+		return Promise.reject(error);
+	}
+}
+
 module.exports = {
 	checkUsername,
 	login,
 	signup,
-	updateEmail
+	updateEmail,
+	updatePassword
 };

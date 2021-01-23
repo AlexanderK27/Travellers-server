@@ -11,5 +11,6 @@ router.post('/signup', authController.signup);
 router.use(authMiddleware);
 
 router.patch('/email', authController.changeEmail);
+router.patch('/password', authController.changePassword);
 
 module.exports = router;
